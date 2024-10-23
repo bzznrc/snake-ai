@@ -9,7 +9,7 @@ SCREEN_HEIGHT = GRID_SIZE_Y * BLOCK_SIZE + BB_HEIGHT
 
 # Game Speed
 FPS = 20                  # Frames per second for the user game
-AI_FPS = 80               # Frames per second for the AI game
+AI_FPS = 180               # Frames per second for the AI game
 
 # RGB color definitions
 # RGB color definitions
@@ -32,19 +32,21 @@ MAX_SECTIONS = 5          # Maximum number of sections for obstacles
 WRAP_AROUND = True        # Allows snake to pass through walls if True
 
 # Model constants
-MODEL_SAVE_PREFIX = 'model'     # Prefix tag for saving models
-LOAD_PREVIOUS_MODEL = False     # Start training from a saved model if True
+MODEL_SAVE_PREFIX = 'snake_32'      # Prefix tag for saving models
+LOAD_PREVIOUS_MODEL = True          # Start training from a saved model if True
+
+# Toggle for training plots
+PLOT_TRAIN = False
 
 # Agent hyperparameters
 MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
-LR = 0.002               # Learning rate
-#HIDDEN_LAYERS = [32, 64, 32]  # Three hidden layers, each with 64 neurons
-#HIDDEN_LAYERS = [96, 96]  # Three hidden layers, each with 64 neurons
-HIDDEN_LAYERS = [256]  # One hidden layer with 256 neurons
+LR = 0.001               # Learning rate
+HIDDEN_LAYERS = [32]     # One hidden layer with 32 neurons
+#HIDDEN_LAYERS = [32, 16]
 GAMMA = 0.9              # Discount factor
 
 # Epsilon parameters for exploration
 EPSILON_START = 1.0
-EPSILON_DECAY = 0.95
+EPSILON_DECAY = 0.9995
 EPSILON_MIN = 0.01

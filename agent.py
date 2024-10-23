@@ -169,14 +169,13 @@ def train():
             # Save the model if record is broken
             if score > record:
                 record = score
-                # Optionally, save the best model separately
-                # agent.model.save(f"{MODEL_SAVE_PREFIX}_best.pth")
 
             # Print training progress
-            print(f'Game {agent.n_games}, Score: {score}, Record: {record}, Epsilon: {agent.epsilon:.3f}')
+            print(f'Game {agent.n_games}, Score: {score}, Record: {record}, Avg. Score: {avg_score:.2f}, Epsilon: {agent.epsilon:.3f}')
 
             # Plot the scores
-            plot(scores, avg_scores)
+            if PLOT_TRAIN:
+                plot(scores, avg_scores)
 
 if __name__ == '__main__':
     train()
