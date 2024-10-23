@@ -2,7 +2,7 @@ import torch
 import random
 import numpy as np
 from collections import deque
-from snake_game_ai import SnakeGameAI, Direction, Point, BLOCK_SIZE
+from game_ai import GameAI, Direction, Point, BLOCK_SIZE
 from model import LinearQNet, QTrainer
 import matplotlib.pyplot as plt
 from IPython import display
@@ -131,7 +131,7 @@ def train():
     total_score = 0
     record = 0
     agent = Agent()
-    game = SnakeGameAI()
+    game = GameAI()
 
     while True:
         # Get the current state
@@ -171,7 +171,7 @@ def train():
                 record = score
 
             # Print training progress
-            print(f'Game {agent.n_games}, Score: {score}, Record: {record}, Avg. Score: {avg_score:.2f}, Epsilon: {agent.epsilon:.3f}')
+            print(f'Game {agent.n_games}\tScore: {score}\tRecord: {record}\tAvg. Score: {avg_score:.2f}\tEpsilon: {agent.epsilon:.3f}')
 
             # Plot the scores
             if PLOT_TRAIN:
