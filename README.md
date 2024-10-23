@@ -3,7 +3,7 @@
 ## Overview
 Snake AI is a Python project that combines the classic Snake game with a Reinforcement Learning (RL) agent. The AI learns to control the snake, enabling it to consume food while avoiding collisions with walls, obstacles, and itself. The primary goal is to maximize the snake's score through continuous interaction and learning within the game environment. This project showcases the application of RL techniques in game development and provides a foundation for exploring more complex AI-driven game mechanics.
 
-- Run **`snake_game_user.py`** for the regular user-controlled game.
+- Run **`game_user.py`** for the regular user-controlled game.
 - Run **`agent.py`** to start the training of the AI model.
 
 ## Important Constants
