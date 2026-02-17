@@ -1,0 +1,6 @@
+-e ../bazza-game-design-system
+pygame>=2.5
+torch>=2.2
+numpy>=1.24
+matplotlib>=3.8
+ipython>=8.0

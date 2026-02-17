@@ -3,11 +3,16 @@ import torch.nn as nn
 import torch.optim as optim
 from pathlib import Path
 
+
+def _resolve_model_path(path_value: str) -> Path:
+    return Path(path_value)
+
+
 class LinearQNet(nn.Module):
     """Feedforward Neural Network with customizable hidden layers."""
 
     def __init__(self, input_size, hidden_layers, output_size):
-        super(LinearQNet, self).__init__()
+        super().__init__()
         layers = []
         in_size = input_size
 
@@ -25,18 +30,16 @@ class LinearQNet(nn.Module):
         """Forward pass through the network."""
         return self.network(x)  # Returns raw logits
 
-    def save(self, file_name):
+    def save(self, file_path_value):
         """Save the model to a file."""
-        model_folder_path = Path('./model')
-        model_folder_path.mkdir(parents=True, exist_ok=True)
-        file_path = model_folder_path / file_name
+        file_path = _resolve_model_path(file_path_value)
+        file_path.parent.mkdir(parents=True, exist_ok=True)
         torch.save(self.state_dict(), file_path)
         print(f"Model saved to {file_path}")
 
-    def load(self, file_name):
+    def load(self, file_path_value):
         """Load the model from a file."""
-        model_folder_path = Path('./model')
-        file_path = model_folder_path / file_name
+        file_path = _resolve_model_path(file_path_value)
         if file_path.exists():
             self.load_state_dict(torch.load(file_path))
             self.eval()
