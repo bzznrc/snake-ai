@@ -1,13 +1,20 @@
 """Main training loop and DQN agent implementation for Snake."""
 
-import random
+from __future__ import annotations
+
+if __package__ is None or __package__ == "":
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 from collections import deque
+import logging
+import random
 
 import torch
-import matplotlib.pyplot as plt
-from IPython import display
 
-from config import (
+from snake_ai.config import (
     BATCH_SIZE,
     EPSILON_DECAY,
     EPSILON_MIN,
@@ -18,27 +25,13 @@ from config import (
     LOAD_MODEL,
     MAX_MEMORY,
     MODEL_PATH,
-    PLOT_TRAINING,
 )
-from bgds.visual.colors import COLOR_AQUA, COLOR_DEEP_TEAL
-from game_ai_env import TrainingGame
-from model import LinearQNet, QTrainer
+from snake_ai.runtime.helpers import configure_logging
+from snake_ai.train.env import TrainingGame
+from snake_ai.train.model import LinearQNet, QTrainer
 
-plt.ion()
+LOGGER = logging.getLogger("snake_ai.train")
 
-def plot_training(scores, average_scores):
-    """Plot score progression during training."""
-    display.clear_output(wait=True)
-    display.display(plt.gcf())
-    plt.clf()
-    plt.title("Training Progress")
-    plt.xlabel("Number of Games")
-    plt.ylabel("Score")
-    plt.plot(scores, label="Score", color=tuple(c / 255 for c in COLOR_DEEP_TEAL))
-    plt.plot(average_scores, label="Avg. Score", color=tuple(c / 255 for c in COLOR_AQUA))
-    plt.legend()
-    plt.show(block=False)
-    plt.pause(0.1)
 
 class DQNAgent:
     """Agent that interacts with the environment and learns from it."""
@@ -50,15 +43,12 @@ class DQNAgent:
         self.model = LinearQNet(11, HIDDEN_DIMENSIONS, 3)
         if LOAD_MODEL:
             self.model.load(MODEL_PATH)
-            print(f"Loaded model from {MODEL_PATH}")
         self.trainer = QTrainer(self.model, lr=LEARNING_RATE, gamma=GAMMA)
 
     def remember(self, state, action, reward, next_state, done):
-        """Store experience in replay memory."""
         self.memory.append((state, action, reward, next_state, done))
 
     def train_long_memory(self):
-        """Train model using a random sample from replay memory."""
         if len(self.memory) > BATCH_SIZE:
             mini_batch = random.sample(self.memory, BATCH_SIZE)
         else:
@@ -68,11 +58,9 @@ class DQNAgent:
         return self.trainer.train_step(states, actions, rewards, next_states, dones)
 
     def train_short_memory(self, state, action, reward, next_state, done):
-        """Train model using the latest transition."""
         self.trainer.train_step(state, action, reward, next_state, done)
 
     def select_action(self, state):
-        """Select action using epsilon-greedy policy."""
         self.epsilon = max(EPSILON_MIN, self.epsilon * EPSILON_DECAY)
         if random.random() < self.epsilon:
             move = random.randint(0, 2)
@@ -85,8 +73,9 @@ class DQNAgent:
         action[move] = 1
         return action
 
+
 def train():
-    """Train the Snake DQN agent."""
+    configure_logging()
     scores = []
     average_scores = []
     total_score = 0
@@ -94,6 +83,14 @@ def train():
 
     agent = DQNAgent()
     game = TrainingGame()
+    LOGGER.info(
+        "Train / Model: %s / Load: %s / Batch: %s / Eps: %.3f->%.3f",
+        MODEL_PATH,
+        LOAD_MODEL,
+        BATCH_SIZE,
+        EPSILON_START,
+        EPSILON_MIN,
+    )
 
     while True:
         state_old = game.get_state_vector()
@@ -121,17 +118,15 @@ def train():
             if score > record:
                 record = score
 
-            print(
-                f"Game {agent.n_games}\t"
-                f"Score: {score}\t"
-                f"Record: {record}\t"
-                f"Avg. Score: {average_score:.2f}\t"
-                f"Epsilon: {agent.epsilon:.3f}"
+            LOGGER.info(
+                "Episode=%s Score=%s Record=%s Avg=%.2f Epsilon=%.3f",
+                agent.n_games,
+                score,
+                record,
+                average_score,
+                agent.epsilon,
             )
 
-            if PLOT_TRAINING:
-                plot_training(scores, average_scores)
 
 if __name__ == "__main__":
     train()
-

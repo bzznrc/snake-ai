@@ -1,29 +1,21 @@
 """Training environment wrapping Snake gameplay with RL actions."""
 
-import pygame
 import numpy as np
 
-from config import BB_HEIGHT, TILE_SIZE, TRAINING_FPS, WRAP_AROUND
-from game import BaseGame, Direction, Point
+from snake_ai.config import BB_HEIGHT, TILE_SIZE, TRAINING_FPS, WRAP_AROUND
+from snake_ai.core import BaseGame, Direction, Point
+
 
 class TrainingGame(BaseGame):
     """AI-controlled training environment."""
 
     def play_step(self, action):
-        """Execute one game step based on the selected action."""
         self.frame_iteration += 1
+        self.poll_events()
 
-        # Handle quit events during training loops.
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                raise SystemExit
-
-        # Move snake and append new head.
         self._move(action)
         self.snake.insert(0, self.head)
 
-        # End episode on collision or stalling.
         reward = 0
         game_over = False
         if self._has_collision() or self.frame_iteration > 100 * len(self.snake):
@@ -31,7 +23,6 @@ class TrainingGame(BaseGame):
             reward = -10
             return reward, game_over, self.score
 
-        # Eat food or keep moving.
         if self.head == self.food:
             self.score += 1
             reward = 10
@@ -40,13 +31,12 @@ class TrainingGame(BaseGame):
         else:
             self.snake.pop()
 
-        self._update_ui()
-        self.clock.tick(TRAINING_FPS)
+        self.draw_frame()
+        self.frame_clock.tick(TRAINING_FPS)
 
         return reward, game_over, self.score
 
     def get_state_vector(self):
-        """Build the 11-feature state vector used by the Q-network."""
         head = self.snake[0]
         point_l = Point(head.x - TILE_SIZE, head.y)
         point_r = Point(head.x + TILE_SIZE, head.y)
@@ -84,7 +74,6 @@ class TrainingGame(BaseGame):
         return np.array(state, dtype=int)
 
     def _move(self, action):
-        """Update the head position based on [straight, right, left] action."""
         clockwise_directions = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
         idx = clockwise_directions.index(self.direction)
 
@@ -118,14 +107,7 @@ class TrainingGame(BaseGame):
                 self.head = Point(x, y)
 
     def _has_collision(self):
-        """Check collision with walls (when enabled), self, or obstacles."""
         if not WRAP_AROUND:
-            if (
-                self.head.x < 0
-                or self.head.x >= self.width
-                or self.head.y < 0
-                or self.head.y >= self.height - BB_HEIGHT
-            ):
+            if self.head.x < 0 or self.head.x >= self.width or self.head.y < 0 or self.head.y >= self.height - BB_HEIGHT:
                 return True
         return self.is_collision()
-

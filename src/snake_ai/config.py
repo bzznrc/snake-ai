@@ -1,30 +1,37 @@
 """Configuration values for the Snake RL project."""
 
+from __future__ import annotations
+
+from dataclasses import dataclass
+import os
 from pathlib import Path
-import sys
 
-# Prefer local project modules when multiple game folders are on sys.path.
-_PROJECT_ROOT = Path(__file__).resolve().parent
-if str(_PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(_PROJECT_ROOT))
+from snake_ai.boards import SQUARE_BOARD_STANDARD, SQUARE_CELL_RENDER_STANDARD
+from snake_ai.visual import STATUS_SEPARATOR_SLASH
 
-# Allow local workspace runs without installing bgds globally.
-_WORKSPACE_ROOT = Path(__file__).resolve().parents[1]
-_BGDS_SRC = _WORKSPACE_ROOT / "bazza-game-design-system" / "src"
-if _BGDS_SRC.exists() and str(_BGDS_SRC) not in sys.path:
-    sys.path.insert(0, str(_BGDS_SRC))
 
-from bgds.boards.square import SQUARE_BOARD_STANDARD, SQUARE_CELL_RENDER_STANDARD
-from bgds.visual.typography import STATUS_SEPARATOR_SLASH
+def _env_flag(name: str, default: bool) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+@dataclass(frozen=True)
+class RuntimeFlags:
+    show_game: bool
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+FLAGS = RuntimeFlags(show_game=_env_flag("SNAKE_SHOW_GAME", False))
 
 # Quick toggles
-SHOW_GAME = True
-PLOT_TRAINING = False
+SHOW_GAME = FLAGS.show_game
 LOAD_MODEL = True
 
 # Runtime
 FPS = 20
-TRAINING_FPS = 180
+TRAINING_FPS = False
 WINDOW_TITLE = "Snake AI"
 
 # Arena dimensions
@@ -48,7 +55,7 @@ WRAP_AROUND = True
 
 # Model and training
 MODEL_NAME = "snake_32"
-MODEL_PATH = f"model/{MODEL_NAME}.pth"
+MODEL_PATH = str(PROJECT_ROOT / "model" / f"{MODEL_NAME}.pth")
 
 MAX_MEMORY = 100_000
 BATCH_SIZE = 1_000
