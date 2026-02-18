@@ -1,4 +1,4 @@
-"""Arcade runtime helpers."""
+"""Arcade runtime helpers used by Snake modes."""
 
 from __future__ import annotations
 
@@ -27,16 +27,16 @@ def load_font_once(font_path: str | Path) -> None:
 class ArcadeFrameClock:
     """Simple FPS limiter returning elapsed time in seconds."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._last = time.perf_counter()
 
     def tick(self, fps: int | float) -> float:
         now = time.perf_counter()
         elapsed = now - self._last
-        fps = float(fps)
+        fps_value = float(fps)
 
-        if fps > 0:
-            frame_time = 1.0 / fps
+        if fps_value > 0:
+            frame_time = 1.0 / fps_value
             if elapsed < frame_time:
                 time.sleep(frame_time - elapsed)
                 now = time.perf_counter()
@@ -55,7 +55,7 @@ class MousePress:
 
 
 class ArcadeWindowController:
-    """Small controller for polling events and keyboard state in Arcade."""
+    """Small wrapper for Arcade window and input polling."""
 
     def __init__(
         self,
@@ -66,7 +66,7 @@ class ArcadeWindowController:
         queue_input_events: bool = False,
         vsync: bool = False,
         visible: bool = True,
-    ):
+    ) -> None:
         self.width = int(width)
         self.height = int(height)
         self.enabled = bool(enabled)
@@ -93,10 +93,10 @@ class ArcadeWindowController:
         if self.queue_input_events:
             self.window.push_handlers(self)
 
-    def on_key_press(self, symbol: int, modifiers: int):
+    def on_key_press(self, symbol: int, modifiers: int) -> None:
         self._key_presses.append(symbol)
 
-    def on_mouse_press(self, x: float, y: float, button: int, modifiers: int):
+    def on_mouse_press(self, x: float, y: float, button: int, modifiers: int) -> None:
         self._mouse_presses.append(MousePress(x=x, y=y, button=button, modifiers=modifiers))
 
     def poll_events(self) -> bool:
@@ -157,7 +157,7 @@ class ArcadeWindowController:
 class TextCache:
     """Reusable cache of `arcade.Text` objects."""
 
-    def __init__(self, max_entries: int = 1024):
+    def __init__(self, max_entries: int = 1024) -> None:
         self.max_entries = max(1, int(max_entries))
         self._cache: OrderedDict[tuple, arcade.Text] = OrderedDict()
 

@@ -14,11 +14,6 @@ dependencies = [
   "numpy>=1.24",
 ]
 
-[project.optional-dependencies]
-dev = [
-  "pytest>=8.0",
-]
-
 [tool.setuptools]
 package-dir = {"" = "src"}
 
@@ -27,6 +22,3 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 snake_ai = ["assets/fonts/*.ttf"]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]

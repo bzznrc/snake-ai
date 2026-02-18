@@ -1,29 +1,51 @@
 # Snake AI
 
-Lightweight Snake reinforcement-learning project with local-only modules.
+## Overview
+Minimal, local-only Snake reinforcement learning project using `LinearQNet`.
 
 ## Quickstart
 ```bash
 python -m venv .venv
 . .venv/Scripts/activate
-pip install -e .[dev]
+pip install -e .
 ```
 
-Run:
+## Run
 ```bash
 python -m snake_ai
-python -m snake_ai.train_ai
+python -m snake_ai.play_user
 python -m snake_ai.play_ai
+python -m snake_ai.train_ai
 ```
 
-## Structure
-- `src/snake_ai/config.py`: central config
-- `src/snake_ai/core/`: base gameplay and rendering
-- `src/snake_ai/train/`: RL env/model/training loop
-- `src/snake_ai/runtime/`: local runtime helpers
-- `src/snake_ai/boards/`: obstacle generation
+## Project Layout
+- `src/snake_ai/config.py`: central configuration and constants
+- `src/snake_ai/game.py`: game logic and human/training game modes
+- `src/snake_ai/model.py`: `LinearQNet` and `QTrainer`
+- `src/snake_ai/train_ai.py`: RL training loop
+- `src/snake_ai/play_user.py`: human play entrypoint
+- `src/snake_ai/play_ai.py`: greedy model play entrypoint
+- `src/snake_ai/runtime.py`: arcade runtime primitives
 
-## Tests
-```bash
-pytest
-```
+## RL Inputs/Outputs
+- State input size: `11`
+- State feature 1: `danger_straight`
+- State feature 2: `danger_right`
+- State feature 3: `danger_left`
+- State feature 4: `dir_left`
+- State feature 5: `dir_right`
+- State feature 6: `dir_up`
+- State feature 7: `dir_down`
+- State feature 8: `food_left`
+- State feature 9: `food_right`
+- State feature 10: `food_up`
+- State feature 11: `food_down`
+- Action output size: `3` (one-hot)
+- Action 1: `[1, 0, 0]` (straight)
+- Action 2: `[0, 1, 0]` (turn right)
+- Action 3: `[0, 0, 1]` (turn left)
+- Reward: `+10` food eaten
+- Reward: `-10` collision/timeout
+- Reward: `0` otherwise
+- Model input tensor shape: `(..., 11)`
+- Model output tensor shape: `(..., 3)`

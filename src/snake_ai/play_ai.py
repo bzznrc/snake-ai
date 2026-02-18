@@ -1,6 +1,8 @@
 """Run a trained Snake model for quick evaluation."""
 
-if __package__ is None or __package__ == "":
+from __future__ import annotations
+
+if __package__ in {None, ""}:
     import sys
     from pathlib import Path
 
@@ -9,8 +11,9 @@ if __package__ is None or __package__ == "":
 import torch
 
 from snake_ai.config import HIDDEN_DIMENSIONS, MODEL_PATH
-from snake_ai.train.env import TrainingGame
-from snake_ai.train.model import LinearQNet
+from snake_ai.game import TrainingSnakeGame
+from snake_ai.logging_utils import configure_logging, log_run_context
+from snake_ai.model import LinearQNet
 
 
 class GameModelRunner:
@@ -21,9 +24,9 @@ class GameModelRunner:
         self.model = LinearQNet(11, HIDDEN_DIMENSIONS, 3)
         self.model.load(model_path)
         self.model.eval()
-        self.game = TrainingGame()
+        self.game = TrainingSnakeGame()
 
-    def select_action(self, state):
+    def select_action(self, state) -> list[int]:
         with torch.no_grad():
             state0 = torch.tensor(state, dtype=torch.float)
             prediction = self.model(state0)
@@ -33,7 +36,7 @@ class GameModelRunner:
         action[move] = 1
         return action
 
-    def run(self, episodes: int = 10):
+    def run(self, episodes: int = 10) -> None:
         total_score = 0
         best_score = 0
 
@@ -54,7 +57,9 @@ class GameModelRunner:
         print(f"Episodes: {episodes}\tAvg Score: {avg_score:.2f}\tBest Score: {best_score}")
 
 
-def run_ai(episodes: int = 10):
+def run_ai(episodes: int = 10) -> None:
+    configure_logging()
+    log_run_context("play-ai", {"episodes": episodes, "model": MODEL_PATH})
     runner = GameModelRunner()
     runner.run(episodes=episodes)
 
