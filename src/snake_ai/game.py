@@ -31,9 +31,10 @@ from snake_ai.config import (
     NUM_OBSTACLES,
     SCREEN_HEIGHT,
     SCREEN_WIDTH,
-    SHOW_GAME,
     TILE_SIZE,
     TRAINING_FPS,
+    REWARD_DEATH_OR_TIMEOUT,
+    REWARD_FOOD,
     WINDOW_TITLE,
     WRAP_AROUND,
 )
@@ -113,9 +114,10 @@ class Point:
 class BaseSnakeGame:
     """Shared world state and rendering for Snake."""
 
-    def __init__(self) -> None:
+    def __init__(self, show_game: bool = True) -> None:
         self.width = SCREEN_WIDTH
         self.height = SCREEN_HEIGHT
+        self.show_game = bool(show_game)
         self.frame_clock = ArcadeFrameClock()
         self.font_name = _font_name()
         self.text_cache = TextCache(max_entries=64)
@@ -123,7 +125,7 @@ class BaseSnakeGame:
             self.width,
             self.height,
             WINDOW_TITLE,
-            enabled=SHOW_GAME,
+            enabled=self.show_game,
             queue_input_events=False,
             vsync=False,
         )
@@ -356,11 +358,11 @@ class TrainingSnakeGame(BaseSnakeGame):
 
         reward = 0
         if self._has_collision() or self.frame_iteration > 100 * len(self.snake):
-            return -10, True, self.score
+            return int(REWARD_DEATH_OR_TIMEOUT), True, self.score
 
         if self.head == self.food:
             self.score += 1
-            reward = 10
+            reward = int(REWARD_FOOD)
             self._place_food()
             self.frame_iteration = 0
         else:
@@ -404,6 +406,7 @@ class TrainingSnakeGame(BaseSnakeGame):
             self.food.x > self.head.x,
             self.food.y < self.head.y,
             self.food.y > self.head.y,
+            len(self.snake),
         ]
         return np.array(state, dtype=int)
 

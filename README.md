@@ -28,7 +28,7 @@ python -m snake_ai.train_ai
 - `src/snake_ai/runtime.py`: arcade runtime primitives
 
 ## RL Inputs/Outputs
-- State input size: `11`
+- State input size: `12`
 - State feature 1: `danger_straight`
 - State feature 2: `danger_right`
 - State feature 3: `danger_left`
@@ -40,6 +40,7 @@ python -m snake_ai.train_ai
 - State feature 9: `food_right`
 - State feature 10: `food_up`
 - State feature 11: `food_down`
+- State feature 12: `snake_length`
 - Action output size: `3` (one-hot)
 - Action 1: `[1, 0, 0]` (straight)
 - Action 2: `[0, 1, 0]` (turn right)
@@ -47,5 +48,5 @@ python -m snake_ai.train_ai
 - Reward: `+10` food eaten
 - Reward: `-10` collision/timeout
 - Reward: `0` otherwise
-- Model input tensor shape: `(..., 11)`
+- Model input tensor shape: `(..., 12)`
 - Model output tensor shape: `(..., 3)`

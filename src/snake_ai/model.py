@@ -2,16 +2,26 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
+import time
 
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
 
+from snake_ai.config import MODEL_SAVE_RETRIES, MODEL_SAVE_RETRY_DELAY_SECONDS
+
 
 def _resolve_model_path(path_value: str) -> Path:
     return Path(path_value)
+
+
+INCOMPATIBLE_CHECKPOINT_MESSAGE = (
+    "ERROR: Incompatible model checkpoint for current network architecture. "
+    "HIDDEN_DIMENSIONS and checkpoint must match."
+)
 
 
 class LinearQNet(nn.Module):
@@ -36,15 +46,39 @@ class LinearQNet(nn.Module):
     def save(self, file_path_value: str) -> None:
         file_path = _resolve_model_path(file_path_value)
         file_path.parent.mkdir(parents=True, exist_ok=True)
-        torch.save(self.state_dict(), file_path)
-        print(f"Model saved to {file_path}")
+        temp_file = file_path.with_name(f"{file_path.name}.tmp.{os.getpid()}")
+        last_error = None
+
+        for attempt in range(MODEL_SAVE_RETRIES):
+            try:
+                torch.save(self.state_dict(), temp_file)
+                os.replace(temp_file, file_path)
+                return
+            except (OSError, RuntimeError) as error:
+                last_error = error
+                if temp_file.exists():
+                    try:
+                        temp_file.unlink()
+                    except OSError:
+                        pass
+                if attempt < MODEL_SAVE_RETRIES - 1:
+                    delay = MODEL_SAVE_RETRY_DELAY_SECONDS * (attempt + 1)
+                    time.sleep(delay)
+
+        raise RuntimeError(
+            f"Failed to save model to '{file_path}' after {MODEL_SAVE_RETRIES} attempts."
+        ) from last_error
 
     def load(self, file_path_value: str) -> None:
         file_path = _resolve_model_path(file_path_value)
         if file_path.exists():
-            self.load_state_dict(torch.load(file_path))
-            self.eval()
-            print(f"Model loaded from {file_path}")
+            try:
+                self.load_state_dict(torch.load(file_path))
+                self.eval()
+                print(f"Model loaded from {file_path}")
+            except RuntimeError:
+                print(INCOMPATIBLE_CHECKPOINT_MESSAGE)
+                raise SystemExit(1)
         else:
             print(f"No model found at {file_path}. Starting from scratch.")
 

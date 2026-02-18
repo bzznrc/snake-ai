@@ -10,12 +10,13 @@ if __package__ in {None, ""}:
 
 from snake_ai.game import HumanSnakeGame
 from snake_ai.logging_utils import configure_logging, log_run_context
+from snake_ai.config import resolve_show_game
 
 
 def run_user() -> None:
     configure_logging()
     log_run_context("play-user", {})
-    game = HumanSnakeGame()
+    game = HumanSnakeGame(show_game=resolve_show_game(default_value=True))
     score = 0
     try:
         while True:

@@ -3,24 +3,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import os
 from pathlib import Path
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-
-
-def _env_flag(name: str, default: bool) -> bool:
-    raw = os.getenv(name)
-    if raw is None:
-        return default
-    return raw.strip().lower() in {"1", "true", "yes", "on"}
-
-
-@dataclass(frozen=True)
-class RuntimeConfig:
-    show_game: bool
-
 
 @dataclass(frozen=True)
 class BoardConfig:
@@ -39,7 +25,6 @@ class BoardConfig:
         return self.rows * self.cell_size_px + self.bottom_bar_height_px
 
 
-RUNTIME = RuntimeConfig(show_game=_env_flag("SNAKE_SHOW_GAME", True))
 BOARD = BoardConfig(
     columns=32,
     rows=24,
@@ -49,7 +34,15 @@ BOARD = BoardConfig(
 )
 
 # Runtime
-SHOW_GAME = RUNTIME.show_game
+SHOW_GAME_OVERRIDE: bool | None = None
+
+
+def resolve_show_game(default_value: bool) -> bool:
+    if SHOW_GAME_OVERRIDE is None:
+        return bool(default_value)
+    return SHOW_GAME_OVERRIDE
+
+
 LOAD_MODEL = True
 FPS = 20
 TRAINING_FPS = 0
@@ -71,22 +64,64 @@ MIN_OBSTACLE_SECTIONS = 2
 MAX_OBSTACLE_SECTIONS = 5
 WRAP_AROUND = True
 
+# Input/output spaces
+INPUT_FEATURE_NAMES = [
+    "danger_straight",
+    "danger_right",
+    "danger_left",
+    "dir_left",
+    "dir_right",
+    "dir_up",
+    "dir_down",
+    "food_left",
+    "food_right",
+    "food_up",
+    "food_down",
+    "snake_length",
+]
+ACTION_NAMES = [
+    "straight",
+    "turn_right",
+    "turn_left",
+]
+NUM_INPUT_FEATURES = len(INPUT_FEATURE_NAMES)
+NUM_ACTIONS = len(ACTION_NAMES)
+MODEL_INPUT_SIZE = NUM_INPUT_FEATURES
+MODEL_OUTPUT_SIZE = NUM_ACTIONS
+
 # Model and training
-MODEL_NAME = "snake_32"
-MODEL_PATH = str(PROJECT_ROOT / "model" / f"{MODEL_NAME}.pth")
 MAX_MEMORY = 100_000
 BATCH_SIZE = 1_000
 LEARNING_RATE = 1e-3
-HIDDEN_DIMENSIONS = [32]
+HIDDEN_DIMENSIONS = [32, 16]
+MODEL_SUBDIR = "_".join(str(size) for size in HIDDEN_DIMENSIONS)
+MODEL_DIR = PROJECT_ROOT / "model" / MODEL_SUBDIR
+MODEL_NAME = f"snake_{MODEL_SUBDIR}"
+MODEL_PATH = str(MODEL_DIR / f"{MODEL_NAME}.pth")
+MODEL_BEST_PATH = str(MODEL_DIR / f"{MODEL_NAME}_best.pth")
+MODEL_SAVE_RETRIES = 5
+MODEL_SAVE_RETRY_DELAY_SECONDS = 0.2
+AVG100_WINDOW = 100
+BEST_MODEL_MIN_EPISODES = AVG100_WINDOW
 GAMMA = 0.9
-EPSILON_START = 1.0
-EPSILON_DECAY = 0.9995
-EPSILON_MIN = 0.01
+EPSILON_START = 0.5
+EPSILON_DECAY = 0.999995
+EPSILON_END = 0.05
+
+# Reward shaping
+REWARD_FOOD = 10.0
+REWARD_DEATH_OR_TIMEOUT = -5.0
+REWARD_STEP = -0.01
+REWARD_COMPONENTS = {
+    "food": REWARD_FOOD,
+    "death_or_timeout": REWARD_DEATH_OR_TIMEOUT,
+    "step": REWARD_STEP,
+}
 
 # UI
 FONT_FAMILY_DEFAULT: str | None = None
 FONT_PATH_ROBOTO_REGULAR = "fonts/Roboto-Regular.ttf"
-FONT_SIZE_STATUS = 24
+FONT_SIZE_STATUS = 18
 UI_STATUS_SEPARATOR = "   /   "
 
 # Colors
